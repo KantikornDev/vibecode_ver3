@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Block } from '../types';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, CheckSquare, Square } from 'lucide-react';
 
 interface BlockComponentProps {
   block: Block;
@@ -25,7 +25,6 @@ export const BlockComponent: React.FC<BlockComponentProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-resize textarea
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -49,7 +48,8 @@ export const BlockComponent: React.FC<BlockComponentProps> = ({
       case 'heading2': return 'text-2xl font-bold mt-4 mb-2 text-gray-800';
       case 'heading3': return 'text-xl font-bold mt-3 mb-1 text-gray-800';
       case 'quote': return 'border-l-4 border-gray-900 pl-4 italic text-gray-600 my-2';
-      case 'bullet': return 'list-disc ml-4';
+      case 'bullet': return 'ml-0';
+      case 'todo': return 'ml-0 font-medium text-gray-700';
       default: return 'text-base text-gray-800 my-1 leading-relaxed';
     }
   };
@@ -60,9 +60,15 @@ export const BlockComponent: React.FC<BlockComponentProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Drag Handle / Menu Trigger (Visible on Hover) */}
+      {/* Drag Handle */}
       <div className={`absolute left-0 top-1.5 text-gray-300 cursor-grab hover:bg-gray-100 rounded transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
         <GripVertical size={20} />
+      </div>
+
+      {/* Block Decoration (Bullet / Checkbox) */}
+      <div className="mr-2 mt-1.5 select-none text-gray-400">
+          {block.type === 'bullet' && <div className="w-1.5 h-1.5 bg-gray-800 rounded-full mt-1.5 mx-1" />}
+          {block.type === 'todo' && <Square size={16} className="cursor-pointer hover:text-gray-600" />}
       </div>
 
       <textarea

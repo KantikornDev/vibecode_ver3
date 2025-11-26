@@ -5,7 +5,6 @@ import { AIActionType } from '../types';
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Using Flash for fast text editing tasks, Pro for complex reasoning if needed.
-// For this editor, Flash is generally preferred for speed (latency).
 const MODEL_NAME = 'gemini-2.5-flash';
 
 export const streamAIContent = async (
@@ -65,3 +64,38 @@ export const streamAIContent = async (
     throw error;
   }
 };
+
+// New function for structured data generation (JSON)
+export const generateStructuredData = async (context: string): Promise<any> => {
+  const prompt = `
+    Analyze the following documents and return a strictly valid JSON object (no markdown formatting, no code blocks).
+    
+    Data to extract:
+    1. metrics: { projectHealth (0-100 based on tone), completedTasks (count checked items), totalTasks (count all items), sentiment (Positive/Neutral/Critical) }
+    2. topics: Array of top 4 topics/categories found with 'count' (relevance score 1-100) and 'topic' name.
+    3. actionItems: Array of specific tasks found. format: { id (random string), task, assignee (infer or "Unassigned"), priority (High/Medium/Low), status (To Do/In Progress/Done) }
+
+    Documents:
+    ${context}
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+    
+    const text = response.text;
+    if (!text) throw new Error("No data returned");
+    
+    // Clean up potential markdown fences if the model ignores instruction
+    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Gemini Structure API Error:", error);
+    return null;
+  }
+}
